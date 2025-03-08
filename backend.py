@@ -5,7 +5,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, APIRouter
 from pydantic_utils import QueryInput, QueryResponse, DocumentInfo, DeleteFileRequest
 from database  import get_chat_history, insert_chat_logs, insert_document_record, delete_document_record, get_all_documents
 from langchain_utils import get_rag_chain
-from chroma_utils import index_documents_to_chroma
+from chroma_utils import index_documents_to_chroma, delete_document
 
 """"
 API EndPoints
@@ -105,7 +105,7 @@ async def list_documents():
 
 # /delete-doc
 @router.delete("/delete-doc")
-async def delete_document(request: DeleteFileRequest):
+async def delete_doc(request: DeleteFileRequest):
   # Delete from Chroma Db
   chroma_delete = delete_document(request.file_id)
   
