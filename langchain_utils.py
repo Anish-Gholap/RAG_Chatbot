@@ -48,6 +48,27 @@ qa_prompt = ChatPromptTemplate.from_messages([
     MessagesPlaceholder(variable_name="chat_history"),
     ("human", "{input}")
 ])
+# Web search system prompt
+web_search_system_prompt = """You are an AI assistant with the ability to search the web for information. When a user asks a question that could benefit from web information, you should:
+
+1. Determine if searching the web would enhance your response.
+2. If yes, explicitly mention that you'll search the web to provide better information.
+3. When analyzing information from the web, extract key information and provide clear citations.
+
+When you need to search for information:
+- Use specific search terms and proper keywords
+- Specify file types when appropriate (example: "climate change reports filetype:pdf")
+- Always provide attribution for information you retrieve
+
+You maintain conversation history within each chat context separately. Each conversation is isolated from others. When the user clears their session, start fresh with no memory of previous interactions.
+
+Remember: Users rely on you for accurate information. Be transparent about the sources of your knowledge and when you're uncertain about something. Always prioritize quality of information over quantity."""
+
+web_search_prompt = ChatPromptTemplate.from_messages([
+    ("system", web_search_system_prompt),
+    MessagesPlaceholder(variable_name="chat_history"),
+    ("human", "{input}")
+])
 
 # Create RAG Chain
 # User query → Retriever → Documents → create_stuff_documents_chain → Formats prompt with {context} filled → LLM → Response

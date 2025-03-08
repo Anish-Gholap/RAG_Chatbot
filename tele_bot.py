@@ -8,7 +8,6 @@ from enum import Enum
 import logging
 import sys
 
-# Streamlined logging setup - only important information
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", 
     level=logging.INFO,
@@ -18,7 +17,6 @@ logging.basicConfig(
     ]
 )
 
-# Set higher logging level for httpx to avoid all GET and POST requests being logged
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("telegram").setLevel(logging.INFO)
 
@@ -37,12 +35,12 @@ class ModelName(str, Enum):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"User {update.effective_user.id} started a new session")
     user = update.effective_user
-    context.user_data['session_id'] = None
+    context.chat_data['session_id'] = None
     await update.message.reply_text(f"Hello {user.name}, how may I help you?")
   
 async def handle_response(message: str, context: ContextTypes.DEFAULT_TYPE):
     try:
-        session_id = context.user_data.get('session_id')
+        session_id = context.chat_data.get('session_id')
         
         request = {
             "question": message,
@@ -61,7 +59,7 @@ async def handle_response(message: str, context: ContextTypes.DEFAULT_TYPE):
                         response_data = await response.json()
                         
                         if 'session_id' in response_data:
-                            context.user_data['session_id'] = response_data['session_id']
+                            context.chat_data['session_id'] = response_data['session_id']
                             
                         return response_data.get("answer", "Sorry, I couldn't process that")
                     else:
@@ -78,14 +76,14 @@ async def handle_response(message: str, context: ContextTypes.DEFAULT_TYPE):
   
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        # First, check if the message is valid
+        
         if not update.message or not update.message.text:
             return
             
         message_type = update.message.chat.type
         message = update.message.text
         
-        # Log only essential information about the incoming message
+        
         logger.info(f"Received message from user {update.effective_user.id} in {message_type} chat")
         
         # Show typing while bot processes input
@@ -122,14 +120,17 @@ async def clear_session(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Command to clear the current session"""
     try:
         logger.info(f"User {update.effective_user.id} cleared session")
-        context.user_data['session_id'] = None
+        
+        context.chat_data['session_id'] = None
         await update.message.reply_text("Session cleared. Starting a new conversation.")
+        
     except Exception as e:
         logger.error(f"Error in clear_session: {str(e)}")
         await update.message.reply_text("Sorry, an error occurred while clearing your session.")
 
 async def error_handler(update, context):
     """Log errors caused by updates."""
+    
     logger.error(f"Update caused error: {context.error}")
     if update and update.effective_message:
         await update.effective_message.reply_text("An error occurred while processing your request.")
